@@ -18,9 +18,9 @@ ORDER BY id DESC NULLS LAST;
 
  id |        title
 ----+----------------------
-  7 | Proficient
-  6 | Skilled
-  5 | Experienced
+  6 | Proficient
+  5 | Skilled
+  4 | Experienced
   3 | Familiar
   2 | Practical Experience
   1 | Basic Understanding
@@ -43,9 +43,9 @@ ORDER BY id DESC NULLS LAST;
 
  id |        title
 ----+----------------------
-  7 | Proficient
-  6 | Skilled
-  5 | Experienced
+  6 | Proficient
+  5 | Skilled
+  4 | Experienced
   3 | Familiar
   2 | Practical Experience
   1 | Basic Understanding
@@ -73,9 +73,9 @@ ORDER BY id DESC NULLS LAST;
 
  id |        title
 ----+----------------------
-  7 | Proficient
-  6 | Skilled
-  5 | Experienced
+  6 | Proficient
+  5 | Skilled
+  4 | Experienced
   3 | Familiar
   2 | Practical Experience
   1 | Basic Understanding
