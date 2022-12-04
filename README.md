@@ -4,6 +4,8 @@ A collection of tricks for PostgreSQL
 
 ## Create Records in Result Set
 
+### [DB Fiddle Demo](https://www.db-fiddle.com/f/jXbjFvW2iLg5XhFXibx1e6/0)
+
 It can be useful to generate new hardcoded records which are not returned from data in your tables.
 
 For example, it may be useful to have an arbitrary empty record at the end of this result set, filled with `NULL`s:
