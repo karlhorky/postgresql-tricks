@@ -1,6 +1,6 @@
 # PostgreSQL Tricks
 
-A collection of tricks for PostgreSQL
+A collection of useful tricks for PostgreSQL
 
 ## Create Records in Result Set
 
