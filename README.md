@@ -89,7 +89,26 @@ ORDER BY id DESC NULLS LAST;
 
 ## Seed Test Fixture Data with Explicit `id`s to Generated Identity Fields
 
-When adding data to a database for testing purposes, it's often useful to have explicit `id` values to reference records in other tables via foreign keys. However, these explicit `id` values are incompatible with identity fields such as a field specified with `id PRIMARY KEY GENERATED ALWAYS AS IDENTITY`.
+When adding data to a database for testing purposes, it's often useful to have explicit `id` values to reference records in other tables via foreign keys.
+
+However, these explicit `id` values are incompatible with identity fields such as a field specified with `id PRIMARY KEY GENERATED ALWAYS AS IDENTITY` - inserting records with explicit `id` values will lead to `cannot insert a non-DEFAULT value into column` errors from PostgreSQL:
+
+```
+2025-01-06 12:49:32.107 UTC [17659] ERROR:  cannot insert a non-DEFAULT value into column "id"
+2025-01-06 12:49:32.107 UTC [17659] DETAIL:  Column "id" is an identity column defined as GENERATED ALWAYS.
+2025-01-06 12:49:32.107 UTC [17659] HINT:  Use OVERRIDING SYSTEM VALUE to override.
+2025-01-06 12:49:32.107 UTC [17659] STATEMENT:
+  INSERT INTO
+    regions (id, slug, title)
+  VALUES
+    ($1, $2, $3),
+    ($4, $5, $6)
+  ON CONFLICT (id) DO UPDATE
+  SET
+    id = excluded.id,
+    slug = excluded.slug,
+    title = excluded.title
+```
 
 To use explicit `id` values in test fixture data while using generated identity fields, drop the identity, insert the records and add the identity back.
 
