@@ -260,3 +260,67 @@ export const testRegions = {
 ```
 
 This allows the `id` values to be used in other tables as foreign keys, eg. `testRegions.europe.id` could be imported in `tables/002-campuses.fixture.ts` to use as a value for a foreign key field `campuses.region_id`.
+
+## Upgrade PostgreSQL 17 to 18 (macOS Homebrew)
+
+To upgrade from macOS Homebrew PostgreSQL 17 to PostgreSQL 18, enable checksums on the existing cluster, upgrade the cluster and update the paths:
+
+First, stop PostgreSQL 17, eg. via `brew services stop postgresql@17`, or <kbd>control</kbd>-<kbd>C</kbd> if it's running in the foreground.
+
+Then install PostgreSQL 18 and enable data checksums on your v17 cluster (so it matches [the v18 cluster with checksums default-enabled](https://www.postgresql.org/docs/release/18.0/#:~:text=Change%20initdb%20default%20to%20enable%20data%20checksums%20(Greg%20Sabino%20Mullane)) that Homebrew created):
+
+```bash
+brew install postgresql@18
+
+"$(brew --prefix postgresql@17)/bin/pg_checksums" \
+  --pgdata="$(brew --prefix)/var/postgresql@17" \
+  --enable
+```
+
+Next, create a temporary working directory for `pg_upgrade` output, run a dry run first, then run the actual upgrade:
+
+```bash
+mkdir -p "$HOME/pg-upgrade-17-to-18"
+cd "$HOME/pg-upgrade-17-to-18"
+
+"$(brew --prefix postgresql@18)/bin/pg_upgrade" \
+  --old-bindir="$(brew --prefix postgresql@17)/bin" \
+  --new-bindir="$(brew --prefix postgresql@18)/bin" \
+  --old-datadir="$(brew --prefix)/var/postgresql@17" \
+  --new-datadir="$(brew --prefix)/var/postgresql@18" \
+  --check
+
+"$(brew --prefix postgresql@18)/bin/pg_upgrade" \
+  --old-bindir="$(brew --prefix postgresql@17)/bin" \
+  --new-bindir="$(brew --prefix postgresql@18)/bin" \
+  --old-datadir="$(brew --prefix)/var/postgresql@17" \
+  --new-datadir="$(brew --prefix)/var/postgresql@18"
+```
+
+Update Homebrew's links to make the v18 accessible via `PATH`, update `PGDATA` from `postgresql@17` to `postgresql@18` in the shell rc file, and set PostgreSQL timezone settings to UTC:
+
+```bash
+brew link --force postgresql@18
+
+perl -pi -e 's/postgresql\@17/postgresql\@18/g' "$HOME/$([[ $SHELL == *"zsh" ]] && echo ".zshrc" || echo ".bash_profile")"
+source "$HOME/$([[ $SHELL == *"zsh" ]] && echo ".zshrc" || echo ".bash_profile")"
+
+perl -i -pe "s/^[#\\s]*(timezone|log_timezone)\\s*=.+$/\\1 = 'UTC'/" "$PGDATA/postgresql.conf"
+```
+
+Start PostgreSQL 18, eg. via `brew services start postgresql@18`, or `postgres` to run in the foreground.
+
+Finally, refresh statistics, verify the upgrade, remove the old cluster and uninstall PostgreSQL 17:
+
+```bash
+vacuumdb --all --analyze-in-stages --missing-stats-only
+vacuumdb --all --analyze-only
+
+psql --dbname=postgres --command "SELECT version();"
+
+cd "$HOME/pg-upgrade-17-to-18"
+./delete_old_cluster.sh
+
+rm -r "$HOME/pg-upgrade-17-to-18"
+brew uninstall postgresql@17
+```
